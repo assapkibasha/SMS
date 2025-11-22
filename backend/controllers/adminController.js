@@ -12,13 +12,13 @@ exports.getAllAdmins = async (req, res) => {
 
 // Create a new admin
 exports.createAdmin = async (req, res) => {
-  const { name, password } = req.body;
+  const { name, password, email } = req.body;
   try {
     const [result] = await pool.query(
-      'INSERT INTO admin (name, password) VALUES (?, ?)',
-      [name, password]
+      'INSERT INTO admin (name, password, email) VALUES (?, ?, ?)',
+      [name, password, email || null]
     );
-    res.status(201).json({ id: result.insertId, name, password });
+    res.status(201).json({ id: result.insertId, name, password, email: email || null });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -27,10 +27,10 @@ exports.createAdmin = async (req, res) => {
 // Update admin
 exports.updateAdmin = async (req, res) => {
   const { id } = req.params;
-  const { name, password } = req.body;
+  const { name, password, email } = req.body;
   try {
-    await pool.query('UPDATE admin SET name=?, password=? WHERE id=?', [name, password, id]);
-    res.json({ id: Number(id), name });
+    await pool.query('UPDATE admin SET name=?, password=?, email=? WHERE id=?', [name, password, email || null, id]);
+    res.json({ id: Number(id), name, email: email || null });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

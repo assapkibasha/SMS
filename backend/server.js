@@ -58,6 +58,9 @@ app.use('/api/attendance',
 );
 app.use('/api/auth', 
     require('./routes/authRoutes'));
+app.use('/api/laptops',
+    require('./routes/laptopRoutes')
+);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

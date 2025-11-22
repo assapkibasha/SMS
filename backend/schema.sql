@@ -13,7 +13,10 @@ DROP TABLE IF EXISTS admin;
 CREATE TABLE IF NOT EXISTS admin (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL UNIQUE,
-  password VARCHAR(255) NOT NULL
+  password VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NULL UNIQUE,
+  reset_code VARCHAR(10) NULL,
+  reset_code_expires DATETIME NULL
 );
 
 CREATE TABLE IF NOT EXISTS class (
@@ -63,6 +66,30 @@ CREATE TABLE IF NOT EXISTS attendance_details (
   student_id INT NOT NULL,
   status ENUM('present','absent') NOT NULL,
   FOREIGN KEY (attendance_id) REFERENCES attendance(id) ON DELETE CASCADE,
+  FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS laptop (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  serialNumber VARCHAR(100) NOT NULL UNIQUE,
+  model VARCHAR(150) NULL,
+  cableNumber VARCHAR(100) NULL,
+  sachetNumber VARCHAR(100) NULL,
+  packageNumber VARCHAR(100) NULL,
+  status ENUM('available','assigned','returned') DEFAULT 'available',
+  student_id INT NULL,
+  assigned_at DATETIME NULL,
+  returned_at DATETIME NULL,
+  FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS laptop_history (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  laptop_id INT NOT NULL,
+  student_id INT NOT NULL,
+  action ENUM('assigned','returned') NOT NULL,
+  action_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (laptop_id) REFERENCES laptop(id) ON DELETE CASCADE,
   FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE
 );
 
