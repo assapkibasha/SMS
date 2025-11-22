@@ -1,5 +1,6 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 function AdminDashboard() {
@@ -51,15 +52,16 @@ function AdminDashboard() {
         <div className="space-y-3">
           <h2 className="text-lg font-semibold text-teal-700">Quick links</h2>
           <div className="flex gap-2 flex-wrap">
-            <a href="/admin/classes" className="px-4 py-2 rounded bg-teal-600 text-white">Create class</a>
-            <a href="/admin/teachers" className="px-4 py-2 rounded bg-teal-600 text-white">Create teacher</a>
-            <a href="/reports" className="px-4 py-2 rounded bg-tealgrey-600 text-white">View reports</a>
+            <Link to="/admin/classes" className="px-4 py-2 rounded bg-teal-600 text-white">Create class</Link>
+            <Link to="/admin/teachers" className="px-4 py-2 rounded bg-teal-600 text-white">Create teacher</Link>
+            <Link to="/admin/laptops" className="px-4 py-2 rounded bg-teal-600 text-white">Manage laptops</Link>
+            <Link to="/reports" className="px-4 py-2 rounded bg-tealgrey-600 text-white">View reports</Link>
           </div>
         </div>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-teal-700">Recent classes</h2>
-            <a href="/admin/classes" className="text-sm text-teal-700">View more</a>
+            <Link to="/admin/classes" className="text-sm text-teal-700">View more</Link>
           </div>
           <div className="rounded border bg-white">
             <table className="min-w-full text-sm">

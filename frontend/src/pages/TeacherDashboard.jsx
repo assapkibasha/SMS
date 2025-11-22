@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 function TeacherDashboard() {
   const [teacher, setTeacher] = useState(null);
@@ -61,9 +62,10 @@ function TeacherDashboard() {
         <div className="space-y-3">
           <h2 className="text-lg font-semibold text-teal-700">Quick links</h2>
           <div className="flex gap-2 flex-wrap">
-            <a href="/teacher/students" className="px-4 py-2 rounded bg-teal-600 text-white">Manage students</a>
-            <a href="/teacher/attendance" className="px-4 py-2 rounded bg-tealgrey-600 text-white">Make attendance</a>
-            <a href="/reports" className="px-4 py-2 rounded bg-teal-600 text-white">View reports</a>
+            <Link to="/teacher/students" className="px-4 py-2 rounded bg-teal-600 text-white">Manage students</Link>
+            <Link to="/teacher/attendance" className="px-4 py-2 rounded bg-tealgrey-600 text-white">Make attendance</Link>
+            <Link to="/teacher/laptops" className="px-4 py-2 rounded bg-teal-600 text-white">Manage laptops</Link>
+            <Link to="/reports" className="px-4 py-2 rounded bg-teal-600 text-white">View reports</Link>
           </div>
         </div>
         <div className="space-y-3">

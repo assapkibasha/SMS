@@ -2,40 +2,49 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function AttendanceManagement() {
-  const [classes, setClasses] = useState([]);
-  const [selectedClass, setSelectedClass] = useState('');
+  const [teacher, setTeacher] = useState(null);
+  const [classId, setClassId] = useState(null);
+  const [className, setClassName] = useState('');
   const [attendanceDate, setAttendanceDate] = useState('');
   const [session, setSession] = useState('morning');
   const [students, setStudents] = useState([]);
   const [attendanceData, setAttendanceData] = useState({});
+  const [selectedStudents, setSelectedStudents] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [notification, setNotification] = useState(null);
 
-  // Fetch classes from backend
+  // Load teacher and their assigned class + students
   useEffect(() => {
-    const fetchClasses = async () => {
+    const init = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/class');
-        setClasses(res.data);
+        const username = localStorage.getItem('username');
+        const { data: tch } = await axios.get(`http://localhost:5000/api/teacher?name=${encodeURIComponent(username || '')}`);
+        const t = tch[0] || null;
+        setTeacher(t);
+
+        if (!t?.class_id) {
+          return;
+        }
+
+        setClassId(t.class_id);
+        setClassName(t.className || '');
+
+        const { data: stds } = await axios.get(`http://localhost:5000/api/students?classId=${t.class_id}`);
+        setStudents(stds);
+
+        const initialSelected = {};
+        stds.forEach((s) => {
+          initialSelected[s.id] = true;
+        });
+        setSelectedStudents(initialSelected);
+        setAttendanceData({});
       } catch (error) {
-        console.error('Error fetching classes:', error);
+        console.error('Error initializing attendance management:', error);
       }
     };
 
-    fetchClasses();
+    init();
   }, []);
-
-  // Fetch students for selected class
-  const fetchStudents = async () => {
-    if (!selectedClass) return;
-
-    try {
-      const res = await axios.get(`http://localhost:5000/api/students?classId=${selectedClass}`);
-      setStudents(res.data);
-      setAttendanceData({});
-    } catch (error) {
-      console.error('Error fetching students:', error);
-    }
-  };
 
   // Handle student attendance change
   const handleAttendanceChange = (studentId, status) => {
@@ -45,39 +54,78 @@ function AttendanceManagement() {
     });
   };
 
+  // Mark all students as a given status (present/absent)
+  const handleMarkAll = (status) => {
+    if (!students.length) return;
+
+    const allMarked = {};
+    students.forEach((student) => {
+      if (selectedStudents[student.id] !== false) {
+        allMarked[student.id] = status;
+      }
+    });
+    setAttendanceData(allMarked);
+  };
+
   // Submit attendance
   const handleSubmitAttendance = async () => {
-    if (!selectedClass || !attendanceDate || Object.keys(attendanceData).length === 0) {
-      alert('Please select a class, date, and mark attendance for at least one student.');
+    if (!classId || !attendanceDate || Object.keys(attendanceData).length === 0) {
+      setNotification({ type: 'error', message: 'Please select a date and mark attendance for at least one student.' });
       return;
     }
 
     try {
       await axios.post('http://localhost:5000/api/attendance/submit', {
-        classId: Number(selectedClass),
+        classId: Number(classId),
+        teacherId: teacher?.id || null,
         attendanceDate,
         session,
         attendanceData,
       });
       setSubmitted(true);
-      alert('Attendance submitted successfully!');
+      setNotification({ type: 'success', message: 'Attendance submitted successfully.' });
     } catch (error) {
       console.error('Error submitting attendance:', error);
+      if (error.response && error.response.status === 409) {
+        setNotification({ type: 'error', message: error.response.data?.error || 'Attendance for this class, date and session is already recorded.' });
+      } else {
+        setNotification({ type: 'error', message: 'Failed to submit attendance. Please try again.' });
+      }
     }
   };
 
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold text-teal-700">Attendance Management</h2>
+      {notification && (
+        <div
+          className={`rounded px-4 py-2 text-sm ${
+            notification.type === 'error'
+              ? 'bg-red-50 text-red-700 border border-red-200'
+              : 'bg-green-50 text-green-700 border border-green-200'
+          }`}
+        >
+          <div className="flex justify-between items-center">
+            <span>{notification.message}</span>
+            <button
+              type="button"
+              onClick={() => setNotification(null)}
+              className="text-xs text-gray-500 hover:text-gray-700"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex items-end gap-3">
         <div className="flex flex-col">
-          <label className="text-sm text-gray-700">Select Class</label>
-          <select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)} className="border rounded px-3 py-2 w-64">
-            <option value="">-- Select Class --</option>
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>{cls.name}</option>
-            ))}
-          </select>
+          <label className="text-sm text-gray-700">Class</label>
+          <input
+            type="text"
+            value={className || (teacher?.className || 'No class assigned')}
+            disabled
+            className="border rounded px-3 py-2 w-64 bg-gray-100 text-gray-700"
+          />
         </div>
         <div className="flex flex-col">
           <label className="text-sm text-gray-700">Session</label>
@@ -90,15 +138,31 @@ function AttendanceManagement() {
           <label className="text-sm text-gray-700">Attendance Date</label>
           <input type="date" value={attendanceDate} onChange={(e) => setAttendanceDate(e.target.value)} className="border rounded px-3 py-2" />
         </div>
-        <button onClick={fetchStudents} className="bg-teal-600 text-white px-4 py-2 rounded h-10">Load Students</button>
       </div>
 
       {students.length > 0 && (
         <div className="space-y-2">
-          <h3 className="font-medium">Students in: {classes.find((c) => String(c.id) === String(selectedClass))?.name}</h3>
+          <h3 className="font-medium">Students in: {className || teacher?.className || '-'}</h3>
+          <div className="flex gap-2 mb-2">
+            <button
+              type="button"
+              onClick={() => handleMarkAll('present')}
+              className="px-3 py-1 rounded border bg-teal-600 text-white border-teal-700 text-sm"
+            >
+              Mark all present
+            </button>
+            <button
+              type="button"
+              onClick={() => handleMarkAll('absent')}
+              className="px-3 py-1 rounded border bg-tealgrey-600 text-white border-tealgrey-700 text-sm"
+            >
+              Mark all absent
+            </button>
+          </div>
           <table className="min-w-full text-sm">
             <thead>
               <tr className="bg-gray-100">
+                <th className="text-left p-2">Include</th>
                 <th className="text-left p-2">Student Name</th>
                 <th className="text-left p-2">ID Number</th>
                 <th className="text-left p-2">Mark</th>
@@ -107,6 +171,27 @@ function AttendanceManagement() {
             <tbody>
               {students.map((student) => (
                 <tr key={student.id} className="border-b">
+                  <td className="p-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedStudents[student.id] !== false}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setSelectedStudents((prev) => ({
+                          ...prev,
+                          [student.id]: checked,
+                        }));
+
+                        if (!checked) {
+                          setAttendanceData((prev) => {
+                            const updated = { ...prev };
+                            delete updated[student.id];
+                            return updated;
+                          });
+                        }
+                      }}
+                    />
+                  </td>
                   <td className="p-2">{student.studentName}</td>
                   <td className="p-2">{student.studentIdNumber}</td>
                   <td className="p-2">

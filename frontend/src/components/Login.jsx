@@ -67,6 +67,18 @@ function Login({ onLogin }) {
           <input type="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required className="border rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-teal-500" />
         </div>
 
+        {role === 'admin' && (
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => navigate('/forgot-password')}
+              className="text-xs text-teal-700 hover:underline"
+            >
+              Forgot admin password?
+            </button>
+          </div>
+        )}
+
         <button type="submit" disabled={loading} className="w-full py-2 rounded bg-tealgrey-600 text-white hover:bg-tealgrey-700">
           {loading ? 'Logging in...' : 'Login'}
         </button>

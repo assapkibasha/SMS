@@ -12,6 +12,8 @@ import ClassManagement from './components/ClassManagement';
 import TeachersManagement from './components/TeachersManagement';
 import StudentManagement from './components/StudentManagement';
 import AttendanceManagement from './components/AttendanceManagement';
+import LaptopManagement from './components/LaptopManagement';
+import AdminForgotPassword from './pages/AdminForgotPassword';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
@@ -54,13 +56,16 @@ function App() {
                     : <Login onLogin={() => { setIsLoggedIn(true); setUserRole(localStorage.getItem('role')); }} />
                 }
               />
+              <Route path="/forgot-password" element={<AdminForgotPassword />} />
               <Route path="/dashboard" element={<ProtectedRoute element={Dashboard} role={null} />} />
               <Route path="/admin" element={<ProtectedRoute element={AdminDashboard} role="admin" />} />
               <Route path="/admin/classes" element={<ProtectedRoute element={ClassManagement} role="admin" />} />
               <Route path="/admin/teachers" element={<ProtectedRoute element={TeachersManagement} role="admin" />} />
+              <Route path="/admin/laptops" element={<ProtectedRoute element={LaptopManagement} role="admin" />} />
               <Route path="/teacher" element={<ProtectedRoute element={TeacherDashboard} role="teacher" />} />
               <Route path="/teacher/students" element={<ProtectedRoute element={StudentManagement} role="teacher" />} />
               <Route path="/teacher/attendance" element={<ProtectedRoute element={AttendanceManagement} role="teacher" />} />
+              <Route path="/teacher/laptops" element={<ProtectedRoute element={LaptopManagement} role="teacher" />} />
               <Route path="/reports" element={<ProtectedRoute element={Reports} role={null} />} />
               <Route path="/settings" element={<ProtectedRoute element={Settings} role={null} />} />
               <Route path="*" element={<Navigate to="/login" replace />} />

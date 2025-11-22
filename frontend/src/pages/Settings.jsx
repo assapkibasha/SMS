@@ -7,6 +7,8 @@ function Settings() {
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState(null);
   const [role, setRole] = useState(null);
+  const [email, setEmail] = useState('');
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     const storedRole = localStorage.getItem('role');
@@ -24,6 +26,7 @@ function Settings() {
           const current = data.find((a) => a.name === storedUsername);
           if (current) {
             setUserId(current.id);
+            setEmail(current.email || '');
           }
         } else if (storedRole === 'teacher') {
           const { data } = await axios.get(`http://localhost:5000/api/teacher?name=${encodeURIComponent(storedUsername)}`);
@@ -41,8 +44,8 @@ function Settings() {
   }, []);
 
   const handleSave = async () => {
-    if (!role || !userId || !username || !password) {
-      alert('Please fill in username and password.');
+    if (!role || !userId || !username || !password || (role === 'admin' && !email)) {
+      setNotification({ type: 'error', message: 'Please fill in all required fields.' });
       return;
     }
 
@@ -52,6 +55,7 @@ function Settings() {
         await axios.put(`http://localhost:5000/api/admin/admins/${userId}`, {
           name: username,
           password,
+          email,
         });
       } else if (role === 'teacher') {
         await axios.put(`http://localhost:5000/api/teacher/${userId}`, {
@@ -60,11 +64,11 @@ function Settings() {
         });
       }
       localStorage.setItem('username', username);
-      alert('Settings saved successfully.');
+      setNotification({ type: 'success', message: 'Settings saved successfully.' });
       setPassword('');
     } catch (e) {
       console.error('Failed to save settings', e);
-      alert('Failed to save settings. Please try again.');
+      setNotification({ type: 'error', message: 'Failed to save settings. Please try again.' });
     } finally {
       setLoading(false);
     }
@@ -73,6 +77,26 @@ function Settings() {
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold text-teal-700">Account Settings</h2>
+      {notification && (
+        <div
+          className={`rounded px-4 py-2 text-sm ${
+            notification.type === 'error'
+              ? 'bg-red-50 text-red-700 border border-red-200'
+              : 'bg-green-50 text-green-700 border border-green-200'
+          }`}
+        >
+          <div className="flex justify-between items-center">
+            <span>{notification.message}</span>
+            <button
+              type="button"
+              onClick={() => setNotification(null)}
+              className="text-xs text-gray-500 hover:text-gray-700"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
       <div className="rounded border bg-white p-4 max-w-md space-y-3">
         <div className="text-sm text-gray-600">Role: <span className="font-medium capitalize">{role || 'Unknown'}</span></div>
         <div className="flex flex-col gap-1">
@@ -84,6 +108,18 @@ function Settings() {
             placeholder="Enter username"
           />
         </div>
+        {role === 'admin' && (
+          <div className="flex flex-col gap-1">
+            <label className="text-sm text-gray-700">Email (for password reset)</label>
+            <input
+              type="email"
+              className="border rounded px-3 py-2"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter admin email"
+            />
+          </div>
+        )}
         <div className="flex flex-col gap-1">
           <label className="text-sm text-gray-700">Password</label>
           <input

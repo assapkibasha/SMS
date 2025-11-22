@@ -16,6 +16,7 @@ function Sidebar() {
             <NavLink to="/admin" end className={linkCls}>Dashboard</NavLink>
             <NavLink to="/admin/classes" className={linkCls}>Classes</NavLink>
             <NavLink to="/admin/teachers" className={linkCls}>Teachers</NavLink>
+            <NavLink to="/admin/laptops" className={linkCls}>Laptops</NavLink>
             <NavLink to="/reports" className={linkCls}>Reports</NavLink>
             <NavLink to="/settings" className={linkCls}>Settings</NavLink>
           </>
@@ -24,6 +25,7 @@ function Sidebar() {
             <NavLink to="/teacher" end className={linkCls}>Dashboard</NavLink>
             <NavLink to="/teacher/students" className={linkCls}>Students</NavLink>
             <NavLink to="/teacher/attendance" className={linkCls}>Attendance</NavLink>
+            <NavLink to="/teacher/laptops" className={linkCls}>Laptops</NavLink>
             <NavLink to="/reports" className={linkCls}>Reports</NavLink>
             <NavLink to="/settings" className={linkCls}>Settings</NavLink>
           </>
