@@ -73,9 +73,6 @@ exports.generateReport = async (req, res) => {
     } else if (startDate && endDate) {
       where.push('a.attendance_date BETWEEN ? AND ?');
       params.push(startDate, endDate);
-    } else if (!date && !startDate && !endDate) {
-      // Default to today's records when no date range is provided
-      where.push('a.attendance_date = CURDATE()');
     }
 
     if (session !== 'all') {

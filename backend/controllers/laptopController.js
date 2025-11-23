@@ -30,6 +30,50 @@ exports.getLaptops = async (req, res) => {
   }
 };
 
+// Update laptop basic info (serial, model, gadgets)
+exports.updateLaptop = async (req, res) => {
+  const { laptopId } = req.params;
+  const { serialNumber, model, cableNumber, sachetNumber, packageNumber } = req.body;
+
+  try {
+    const [existing] = await pool.query('SELECT * FROM laptop WHERE id = ?', [laptopId]);
+    if (existing.length === 0) {
+      return res.status(404).json({ error: 'Laptop not found' });
+    }
+
+    await pool.query(
+      'UPDATE laptop SET serialNumber = ?, model = ?, cableNumber = ?, sachetNumber = ?, packageNumber = ? WHERE id = ?',
+      [serialNumber, model || null, cableNumber || null, sachetNumber || null, packageNumber || null, laptopId]
+    );
+
+    res.json({ message: 'Laptop updated successfully.' });
+  } catch (err) {
+    console.error('Error updating laptop:', err);
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'Laptop with this serial number already exists.' });
+    }
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Delete laptop
+exports.deleteLaptop = async (req, res) => {
+  const { laptopId } = req.params;
+
+  try {
+    const [existing] = await pool.query('SELECT * FROM laptop WHERE id = ?', [laptopId]);
+    if (existing.length === 0) {
+      return res.status(404).json({ error: 'Laptop not found' });
+    }
+
+    await pool.query('DELETE FROM laptop WHERE id = ?', [laptopId]);
+    res.json({ message: 'Laptop deleted successfully.' });
+  } catch (err) {
+    console.error('Error deleting laptop:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 // Create a new laptop (not yet assigned)
 exports.createLaptop = async (req, res) => {
   const { serialNumber, model, cableNumber, sachetNumber, packageNumber } = req.body;
